@@ -150,9 +150,9 @@ class Actor(db.Model, TagBase, RefBase):
         self.middle_name = middle_name
         self.last_name = last_name
 
-    # TODO: print is only showing one tag, middle_name printing None for nulls
+    # TODO: middle_name printing None for nulls
     def __repr__(self):
-        return '<Actor: {} {} {}; Tags:{};>'.format(self.first_name, self.middle_name, self.last_name, *self.tags)
+        return '<Actor: {} {} {}; Tags:{};>'.format(self.first_name, self.middle_name, self.last_name, self.tags.all() or "n/a")
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, actor_tags)
@@ -182,7 +182,7 @@ class Art(db.Model, TagBase, RefBase):
         self.source = source
 
     def __repr__(self):
-        return '<Art: {} by {}; Tags:{};>'.format(self.title, self.artist, *self.tags)
+        return '<Art: {} by {}; Tags:{};>'.format(self.title, self.artist, self.tags.all() or "n/a")
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, art_tags)
@@ -218,7 +218,6 @@ class Author(db.Model):
         return '<Author: {} {} {};>'.format(self.first_name, self.middle_name, self.last_name)
 
 
-# TODO: Add table relationships so that I can just call book.author, book.series, etc
 class Book(db.Model, TagBase):
     # Table definitions
     id = db.Column(db.Integer, primary_key=True)
@@ -231,13 +230,17 @@ class Book(db.Model, TagBase):
     # Table associations
     tags = db.relationship('Tag', secondary=book_tags, lazy='dynamic',
         backref=db.backref('books', lazy=True))
+    universe = db.relationship('Universe', foreign_keys=universe_id, backref='books')
+    series = db.relationship('Series', foreign_keys=series_id, backref='books')
+    author = db.relationship('Author', foreign_keys=author_id, backref='books')
+    coauthor = db.relationship('Author', foreign_keys=coauthor_id, backref='coauthored')
 
     # Instance functions
     def __init__(self, title):
         self.title = title
 
     def __repr__(self):
-        return '<Book: {} by author_id {};>'.format(self.title, self.author_id)
+        return '<Book: {} by author_id {}; Tags:{};>'.format(self.title, self.author_id, self.tags.all() or "n/a")
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, book_tags)
@@ -257,6 +260,8 @@ class Character(db.Model, TagBase, RefBase):
         backref=db.backref('characters', lazy=True))
     refs = db.relationship('Reference', secondary=character_refs, lazy='dynamic',
         backref=db.backref('characters', lazy=True))
+    universe = db.relationship('Universe', foreign_keys=universe_id, backref='characters')
+    series = db.relationship('Series', foreign_keys=series_id, backref='characters')
 
     # Instance functions
     def __init__(self, first_name, last_name):
@@ -264,7 +269,7 @@ class Character(db.Model, TagBase, RefBase):
         self.last_name = last_name
 
     def __repr__(self):
-        return '<Character: {} {}; Tags:{};>'.format(self.first_name, self.last_name, *self.tags)
+        return '<Character: {} {}; Tags:{};>'.format(self.first_name, self.last_name, self.tags.all() or "n/a")
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, character_tags)
@@ -289,13 +294,14 @@ class Series(db.Model, TagBase):
     # Table associations
     tags = db.relationship('Tag', secondary=series_tags, lazy='dynamic',
         backref=db.backref('series', lazy=True))
+    universe = db.relationship('Universe', foreign_keys=universe_id, backref='series')
 
     # Instance functions
     def __init__(self, title):
         self.title = title
 
     def __repr__(self):
-        return '<Series: {}; Tags:{};>'.format(self.title, *self.tags)
+        return '<Series: {}; Tags:{};>'.format(self.title, self.tags.all() or "n/a")
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, series_tags)
@@ -315,7 +321,7 @@ class Universe(db.Model, TagBase):
         self.title = title
 
     def __repr__(self):
-        return '<Universe: {}; Tags:{};>'.format(self.title, *self.tags)
+        return '<Universe: {}; Tags: {};>'.format(self.title, self.tags.all() or "n/a")
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, universe_tags)
