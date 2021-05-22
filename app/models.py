@@ -191,14 +191,21 @@ class Art(db.Model, TagBase, RefBase):
         return super().is_referenced(ref, art_refs)
 
 
-# TODO: Figure out the proper way to implement this when we have two many-to-many (Books, Characters) 
-#       relationships plus a one-to-many (Character, Aliases) relationship
 class Appearance(db.Model):
     # Table definitions
     id = db.Column(db.Integer, primary_key=True)
-    book_id = db.Column(db.Integer, db.ForeignKey('book.id'))
-    character_id = db.Column(db.Integer, db.ForeignKey('character.id'))
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    character_id = db.Column(db.Integer, db.ForeignKey('character.id'), nullable=False)
     alias_id = db.Column(db.Integer, db.ForeignKey('character_alias.id'))
+    __table_args__ = (db.UniqueConstraint(book_id, character_id, alias_id, name='uc_0'),)
+
+    book = db.relationship('Book', foreign_keys=book_id, backref='characters')
+    character = db.relationship('Character', foreign_keys=character_id, backref='appearances')
+    alias = db.relationship('CharacterAlias', foreign_keys=alias_id, backref='appearances')
+
+    # Instance functions
+    def __repr__(self):
+        return '<Appearance: {} in {};>'.format(getattr(self.alias, 'alias', self.character.first_name), self.book.title)
 
 
 class Author(db.Model):
@@ -262,6 +269,7 @@ class Character(db.Model, TagBase, RefBase):
         backref=db.backref('characters', lazy=True))
     universe = db.relationship('Universe', foreign_keys=universe_id, backref='characters')
     series = db.relationship('Series', foreign_keys=series_id, backref='characters')
+    aliases = db.relationship('CharacterAlias', backref='character', lazy=True)
 
     # Instance functions
     def __init__(self, first_name, last_name):
@@ -281,8 +289,12 @@ class Character(db.Model, TagBase, RefBase):
 class CharacterAlias(db.Model):
     # Table definitions
     id = db.Column(db.Integer, primary_key=True)
-    character_id = db.Column(db.Integer, db.ForeignKey('character.id'))
+    character_id = db.Column(db.Integer, db.ForeignKey('character.id'), nullable=False)
     alias = db.Column(db.Text)
+
+    # Instance functions
+    def __repr__(self):
+        return '{}'.format(self.alias)
 
 
 class Series(db.Model, TagBase):
