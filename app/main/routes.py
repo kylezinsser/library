@@ -27,3 +27,18 @@ def index():
 @bp.route('/hello/<name>')
 def hello(name):
     return render_template('page.html', name=name)
+
+
+@bp.route('/search')
+def search():
+    return render_template('search.html')
+
+
+@bp.route('/explore')
+def explore():
+    return render_template('explore.html')
+
+
+@bp.route('/submit')
+def submit():
+    return render_template('submit.html')
