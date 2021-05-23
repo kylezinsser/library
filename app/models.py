@@ -77,6 +77,14 @@ character_refs = db.Table('character_refs',
 )
 
 
+# Apperance association table
+
+appearances = db.Table('appearances',
+    db.Column('book_id', db.Integer, db.ForeignKey('book.id')),
+    db.Column('character_id', db.Integer, db.ForeignKey('character.id'))
+)
+
+
 # Association parent classes/functions
 
 class TagBase(object):
@@ -191,23 +199,6 @@ class Art(db.Model, TagBase, RefBase):
         return super().is_referenced(ref, art_refs)
 
 
-class Appearance(db.Model):
-    # Table definitions
-    id = db.Column(db.Integer, primary_key=True)
-    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
-    character_id = db.Column(db.Integer, db.ForeignKey('character.id'), nullable=False)
-    alias_id = db.Column(db.Integer, db.ForeignKey('character_alias.id'))
-    __table_args__ = (db.UniqueConstraint(book_id, character_id, alias_id, name='uc_0'),)
-
-    book = db.relationship('Book', foreign_keys=book_id, backref='characters')
-    character = db.relationship('Character', foreign_keys=character_id, backref='appearances')
-    alias = db.relationship('CharacterAlias', foreign_keys=alias_id, backref='appearances')
-
-    # Instance functions
-    def __repr__(self):
-        return '<Appearance: {} in {};>'.format(getattr(self.alias, 'alias', self.character.first_name), self.book.title)
-
-
 class Author(db.Model):
     # Table definitions
     id = db.Column(db.Integer, primary_key=True)
@@ -233,10 +224,13 @@ class Book(db.Model, TagBase):
     author_id = db.Column(db.Integer, db.ForeignKey('author.id'))
     coauthor_id = db.Column(db.Integer, db.ForeignKey('author.id'))
     title = db.Column(db.Text)
+    series_index = db.Column(db.Integer)
 
     # Table associations
     tags = db.relationship('Tag', secondary=book_tags, lazy='dynamic',
         backref=db.backref('books', lazy=True))
+    characters = db.relationship('Character', secondary=appearances, lazy='dynamic',
+        back_populates='books')
     universe = db.relationship('Universe', foreign_keys=universe_id, backref='books')
     series = db.relationship('Series', foreign_keys=series_id, backref='books')
     author = db.relationship('Author', foreign_keys=author_id, backref='books')
@@ -252,12 +246,25 @@ class Book(db.Model, TagBase):
     def is_tagged(self, tag):
         return super().is_tagged(tag, book_tags)
 
+    def add_character_appearance(self, character):
+        if not self.has_character_appearance(character):
+            self.characters.append(character)
+
+    def remove_character_appearance(self, character):
+        if self.has_character_appearance(character):
+            self.characters.remove(character)
+
+    def has_character_appearance(self, character):
+        return self.characters.filter(
+            appearances.c.character_id == character.id).count() > 0
+
 
 class Character(db.Model, TagBase, RefBase):
     # Table definitions
     id = db.Column(db.Integer, primary_key=True)
     universe_id = db.Column(db.Integer, db.ForeignKey('universe.id'))
     series_id = db.Column(db.Integer, db.ForeignKey('series.id'))
+    parent_id = db.Column(db.Integer, db.ForeignKey('character.id'))
     first_name = db.Column(db.Text)
     last_name = db.Column(db.Text)
     description = db.Column(db.Text)
@@ -267,9 +274,11 @@ class Character(db.Model, TagBase, RefBase):
         backref=db.backref('characters', lazy=True))
     refs = db.relationship('Reference', secondary=character_refs, lazy='dynamic',
         backref=db.backref('characters', lazy=True))
+    books = db.relationship('Book', secondary=appearances, lazy='dynamic',
+        back_populates='characters')
     universe = db.relationship('Universe', foreign_keys=universe_id, backref='characters')
     series = db.relationship('Series', foreign_keys=series_id, backref='characters')
-    aliases = db.relationship('CharacterAlias', backref='character', lazy=True)
+    aliases = db.relationship('Character', backref=db.backref('parent', remote_side=[id]))
 
     # Instance functions
     def __init__(self, first_name, last_name):
@@ -285,16 +294,17 @@ class Character(db.Model, TagBase, RefBase):
     def is_referenced(self, ref):
         return super().is_referenced(ref, character_refs)
 
+    def add_book_appearance(self, book):
+        if not self.has_book_appearance(book):
+            self.books.append(book)
 
-class CharacterAlias(db.Model):
-    # Table definitions
-    id = db.Column(db.Integer, primary_key=True)
-    character_id = db.Column(db.Integer, db.ForeignKey('character.id'), nullable=False)
-    alias = db.Column(db.Text)
+    def remove_book_appearance(self, book):
+        if self.has_book_appearance(book):
+            self.books.remove(book)
 
-    # Instance functions
-    def __repr__(self):
-        return '{}'.format(self.alias)
+    def has_book_appearance(self, book):
+        return self.books.filter(
+            appearances.c.book_id == book.id).count() > 0
 
 
 class Series(db.Model, TagBase):
