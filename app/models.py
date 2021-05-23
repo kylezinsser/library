@@ -118,6 +118,7 @@ class RefBase(object):
 # Association models
 
 class Tag(db.Model):
+    __table_args__ = (db.UniqueConstraint('name', 'tag_type_id'),)
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     tag_type_id = db.Column(db.Integer, db.ForeignKey('tag_type.id'))
@@ -128,7 +129,7 @@ class Tag(db.Model):
 
 class TagType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text)
+    name = db.Column(db.Text, unique=True)
 
 
 class Reference(db.Model):
@@ -141,10 +142,12 @@ class Reference(db.Model):
 
 class Actor(db.Model, TagBase, RefBase):
     # Table definitions
+    __table_args__ = (db.UniqueConstraint('first_name', 'middle_name', 'last_name', 'suffix'),)
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.Text)
     middle_name = db.Column(db.Text)
     last_name = db.Column(db.Text)
+    suffix = db.Column(db.Text)
 
     # Table associations
     tags = db.relationship('Tag', secondary=actor_tags, lazy='dynamic',
@@ -201,10 +204,12 @@ class Art(db.Model, TagBase, RefBase):
 
 class Author(db.Model):
     # Table definitions
+    __table_args__ = (db.UniqueConstraint('first_name', 'middle_name', 'last_name', 'suffix'),)
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.Text)
     middle_name = db.Column(db.Text)
     last_name = db.Column(db.Text)
+    suffix = db.Column(db.Text)
 
     # Instance functions
     def __init__(self, first_name, middle_name, last_name):
@@ -218,6 +223,7 @@ class Author(db.Model):
 
 class Book(db.Model, TagBase):
     # Table definitions
+    __table_args__ = (db.UniqueConstraint('universe_id', 'series_id', 'title'),)
     id = db.Column(db.Integer, primary_key=True)
     universe_id = db.Column(db.Integer, db.ForeignKey('universe.id'))
     series_id = db.Column(db.Integer, db.ForeignKey('series.id'))
@@ -261,12 +267,14 @@ class Book(db.Model, TagBase):
 
 class Character(db.Model, TagBase, RefBase):
     # Table definitions
+    __table_args__ = (db.UniqueConstraint('series_id', 'first_name', 'last_name', 'suffix', 'parent_id'),)
     id = db.Column(db.Integer, primary_key=True)
     universe_id = db.Column(db.Integer, db.ForeignKey('universe.id'))
     series_id = db.Column(db.Integer, db.ForeignKey('series.id'))
     parent_id = db.Column(db.Integer, db.ForeignKey('character.id'))
     first_name = db.Column(db.Text)
     last_name = db.Column(db.Text)
+    suffix = db.Column(db.Text)
     description = db.Column(db.Text)
 
     # Table associations
@@ -311,7 +319,7 @@ class Series(db.Model, TagBase):
     # Table definitions
     id = db.Column(db.Integer, primary_key=True)
     universe_id = db.Column(db.Integer, db.ForeignKey('universe.id'))
-    title = db.Column(db.Text)
+    title = db.Column(db.Text, unique=True)
 
     # Table associations
     tags = db.relationship('Tag', secondary=series_tags, lazy='dynamic',
@@ -332,7 +340,7 @@ class Series(db.Model, TagBase):
 class Universe(db.Model, TagBase):
     # Table definitions
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.Text)
+    title = db.Column(db.Text, unique=True)
 
     # Table associations
     tags = db.relationship('Tag', secondary=universe_tags, lazy='dynamic',
