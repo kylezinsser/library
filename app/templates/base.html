@@ -1,5 +1,16 @@
 {% extends 'bootstrap/base.html' %}
 
+{% block head %}
+{{super()}}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='nav.css') }}" />
+{% endblock %}
+
+{% block scripts %}
+{{super()}}
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}
+
 {% block title %}
     {% if title %}{{ title }} - Library{% else %}Welcome to Library{% endif %}
 {% endblock %}
