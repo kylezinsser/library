@@ -2,5 +2,8 @@
 
 {% block app_content %}
     <h1>Hi, {{ current_user.username }}!</h1>
-    Submit page here.
+
+    <a href="{{ url_for('main.add_universe') }}">Add Universe</a>
+
+
 {% endblock %}

@@ -2,5 +2,6 @@
 
 {% block app_content %}
     <h1>Hi, {{ current_user.username }}!</h1>
-    Explore page here.
+
+    <a href="{{ url_for('main.get_universes') }}">Explore Universes</a>
 {% endblock %}

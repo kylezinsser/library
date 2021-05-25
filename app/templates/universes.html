@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if form %}
+        {% if title == 'Edit Resource'%}
+        <h1>Edit Universe</h1>
+        {% else %}
+        <h1>Add Universe</h1>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-4">
+                {{ wtf.quick_form(form, button_map={'delete':'danger'}) }}
+            </div>
+        </div>
+
+    {% elif results %}
+        <table class="table">
+            <thead>
+            <tr>
+                <th><span>ID</span></th>
+                <th><span>Title</span></th>
+                <th><span></span></th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for row in results %}
+            <tr>
+                <td><a href="{{ url_for('main.get_universe', id=row.id) }}">{{ row.id }}</a></td>
+                <td><span>{{ row.title }}</span></td>
+                <td><a class="btn btn-default" href="{{ url_for('main.edit_universe', id=row.id) }}">Edit</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+    No results found?
+
+    {% endif %}
+
+    <div class="back-footer">
+    <a href="{{ url_for('main.get_universes') }}">Go back</a>
+    </div>
+{% endblock %}
