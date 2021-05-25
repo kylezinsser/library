@@ -4,6 +4,8 @@ if (window.location.href.substring(window.location.href.lastIndexOf('/') + 1) ==
         
 $(document).ready(function(){
 
+    $("form input:text").first().focus();
+
     $('#delete').click(function(event){
         event.preventDefault();
 

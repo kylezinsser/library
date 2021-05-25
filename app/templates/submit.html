@@ -1,9 +1,18 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-    <h1>Hi, {{ current_user.username }}!</h1>
-
+    <a href="{{ url_for('main.add_actor') }}">Add Actor</a>
+    <br/>
+    <a href="{{ url_for('main.add_art') }}">Add Art</a>
+    <br/>
+    <a href="{{ url_for('main.add_author') }}">Add Author</a>
+    <br/>
+    <a href="{{ url_for('main.add_book') }}">Add Book</a>
+    <br/>
+    <a href="{{ url_for('main.add_character') }}">Add Character</a>
+    <br/>
+    <a href="{{ url_for('main.add_series') }}">Add Series</a>
+    <br/>
     <a href="{{ url_for('main.add_universe') }}">Add Universe</a>
-
 
 {% endblock %}
