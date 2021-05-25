@@ -24,13 +24,10 @@ def index():
     ]
     return render_template('index.html', title='Home', posts=posts)
 
+
 @bp.route('/favicon.ico') 
 def favicon(): 
     return send_from_directory(os.path.join(current_app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
-@bp.route('/hello/<name>')
-def hello(name):
-    return render_template('page.html', name=name)
 
 
 @bp.route('/search')
@@ -48,55 +45,74 @@ def submit():
     return render_template('submit.html')
 
 
+# Universe Endpoints
+
 @bp.route('/universes/add', methods=['GET', 'POST'])
 def add_universe():
-    form = UniverseForm()
-    if form.validate_on_submit():
-        universe = Universe(title=form.title.data)
-        
-        db.session.add(universe)
-        db.session.commit()
-
-        flash('Congratulations, you added a universe!')
-        return redirect(url_for('main.submit'))
-
-    return render_template('universes.html', title='Add to Collection', form=form)
+    return add_resource(Universe, UniverseForm, 'resource.html', url_for('main.submit'), url_for('main.get_universes'))
 
 @bp.route('/universes/<int:id>/edit', methods=['GET', 'POST'])
 def edit_universe(id):
-    universe = Universe.query.get(id)
-    if universe:
-        form = UniverseForm(obj=universe)
-        if form.delete.data:
-            return redirect(url_for('main.delete_universe', id=id))
-        if form.validate_on_submit():
-            universe.title = form.title.data
-            db.session.commit()
-            flash('Edit successful')
-            return redirect(url_for('main.get_universes'))
-
-    return render_template('universes.html', title='Edit Resource', form=form)
+    return edit_resource(Universe, UniverseForm, id, 'resource.html', url_for('main.get_universes'), url_for('main.get_universes'))
 
 @bp.route('/universes')
 def get_universes():
-    universes = Universe.query.all()
-
-    return render_template('universes.html', results=universes)
+    return get_resources(Universe, 'resource.html', url_for('main.explore'), 'main.get_universe', 'main.edit_universe')
 
 @bp.route('/universes/<int:id>')
 def get_universe(id):
-    universe = Universe.query.get(id)
-
-    return render_template('universes.html', results=[universe])
+    return get_resource(Universe, id, 'resource.html', url_for('main.get_universes'), 'main.get_universe', 'main.edit_universe')
 
 @bp.route('/universes/<int:id>', methods=['DELETE'])
 def delete_universe(id):
-    result = Universe.query.filter_by(id=id).delete()
+    return delete_resource(Universe, id)
+
+
+# CRUD functions for basic resource management
+
+def add_resource(ResourceClass, FormClass, default_template, redirect_url, back_url):
+    form = FormClass()
+    if form.validate_on_submit():
+        resource = ResourceClass()
+        form.populate_obj(resource)
+        
+        db.session.add(resource)
+        db.session.commit()
+
+        flash('Congratulations, you added a {}!'.format(ResourceClass.__name__))
+        return redirect(redirect_url)
+
+    return render_template(default_template, title='Add to Collection', form=form, back_url=back_url)
+
+def edit_resource(ResourceClass, FormClass, id, default_template, redirect_url, back_url):
+    resource = ResourceClass.query.get(id)
+    if resource:
+        form = FormClass(obj=resource)
+        if form.validate_on_submit():
+            form.populate_obj(resource)
+            db.session.commit()
+            flash('{} record update success'.format(ResourceClass.__name__))
+            return redirect(redirect_url)
+
+    return render_template(default_template, title='Edit Resource', form=form, back_url=back_url)
+
+def get_resources(ResourceClass, default_template, back_url, get_uri, edit_uri):
+    resources = ResourceClass.query.all()
+
+    return render_template(default_template, results=resources, back_url=back_url, get_uri=get_uri, edit_uri=edit_uri)
+
+def get_resource(ResourceClass, id, default_template, back_url, get_uri, edit_uri):
+    resource = ResourceClass.query.get(id)
+
+    return render_template(default_template, results=[resource], back_url=back_url, get_uri=get_uri, edit_uri=edit_uri)
+
+def delete_resource(ResourceClass, id):
+    result = ResourceClass.query.filter_by(id=id).delete()
     db.session.commit()
 
     if result:
-        flash('Deletion successful')
+        flash('Successfully deleted {} record'.format(ResourceClass.__name__))
         return jsonify(success=True)
     else:
-        flash('Error deleting universe id: ' + id)
+        flash('Error deleting {} id: {}'.format(ResourceClass.__name__, id))
         return jsonify(success=False)

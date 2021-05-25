@@ -1,12 +1,20 @@
 from flask import current_app
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.orm import class_mapper, ColumnProperty
 from app import db, login
 
+class BaseModel(db.Model):
+    __abstract__ = True
 
+    def columns(self):
+        """Return the actual columns of a SQLAlchemy-mapped object"""
+        return [prop.key for prop in class_mapper(self.__class__).iterate_properties
+            if isinstance(prop, ColumnProperty)]
+    
 # User model for logins
 
-class User(UserMixin, db.Model):
+class User(UserMixin, BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.Text, index=True, unique=True)
     email = db.Column(db.Text, index=True, unique=True)
@@ -117,7 +125,7 @@ class RefBase(object):
 
 # Association models
 
-class Tag(db.Model):
+class Tag(BaseModel):
     __table_args__ = (db.UniqueConstraint('name', 'tag_type_id'),)
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
@@ -127,12 +135,12 @@ class Tag(db.Model):
         return '{}'.format(self.name)
 
 
-class TagType(db.Model):
+class TagType(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, unique=True)
 
 
-class Reference(db.Model):
+class Reference(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.Text)
     private = db.Column(db.Boolean, default=False)
@@ -140,7 +148,7 @@ class Reference(db.Model):
 
 # Main object models
 
-class Actor(db.Model, TagBase, RefBase):
+class Actor(BaseModel, TagBase, RefBase):
     # Table definitions
     __table_args__ = (db.UniqueConstraint('first_name', 'middle_name', 'last_name', 'suffix'),)
     id = db.Column(db.Integer, primary_key=True)
@@ -156,11 +164,6 @@ class Actor(db.Model, TagBase, RefBase):
         backref=db.backref('actors', lazy=True))
 
     # Instance functions
-    def __init__(self, first_name, middle_name, last_name):
-        self.first_name = first_name
-        self.middle_name = middle_name
-        self.last_name = last_name
-
     # TODO: middle_name printing None for nulls
     def __repr__(self):
         return '<Actor: {} {} {}; Tags:{};>'.format(self.first_name, self.middle_name, self.last_name, self.tags.all() or "n/a")
@@ -172,7 +175,7 @@ class Actor(db.Model, TagBase, RefBase):
         return super().is_referenced(ref, actor_refs)
 
 
-class Art(db.Model, TagBase, RefBase):
+class Art(BaseModel, TagBase, RefBase):
     # Table definitions
     id = db.Column(db.Integer, primary_key=True)
     artist = db.Column(db.Text)
@@ -187,11 +190,6 @@ class Art(db.Model, TagBase, RefBase):
         backref=db.backref('art', lazy=True))
 
     # Instance functions
-    def __init__(self, artist, title, source):
-        self.artist = artist
-        self.title = title
-        self.source = source
-
     def __repr__(self):
         return '<Art: {} by {}; Tags:{};>'.format(self.title, self.artist, self.tags.all() or "n/a")
 
@@ -202,7 +200,7 @@ class Art(db.Model, TagBase, RefBase):
         return super().is_referenced(ref, art_refs)
 
 
-class Author(db.Model):
+class Author(BaseModel):
     # Table definitions
     __table_args__ = (db.UniqueConstraint('first_name', 'middle_name', 'last_name', 'suffix'),)
     id = db.Column(db.Integer, primary_key=True)
@@ -212,16 +210,11 @@ class Author(db.Model):
     suffix = db.Column(db.Text)
 
     # Instance functions
-    def __init__(self, first_name, middle_name, last_name):
-        self.first_name = first_name
-        self.middle_name = middle_name
-        self.last_name = last_name
-
     def __repr__(self):
         return '<Author: {} {} {};>'.format(self.first_name, self.middle_name, self.last_name)
 
 
-class Book(db.Model, TagBase):
+class Book(BaseModel, TagBase):
     # Table definitions
     __table_args__ = (db.UniqueConstraint('universe_id', 'series_id', 'title'),)
     id = db.Column(db.Integer, primary_key=True)
@@ -243,9 +236,6 @@ class Book(db.Model, TagBase):
     coauthor = db.relationship('Author', foreign_keys=coauthor_id, backref='coauthored')
 
     # Instance functions
-    def __init__(self, title):
-        self.title = title
-
     def __repr__(self):
         return '<Book: {} by author_id {}; Tags:{};>'.format(self.title, self.author_id, self.tags.all() or "n/a")
 
@@ -265,7 +255,7 @@ class Book(db.Model, TagBase):
             appearances.c.character_id == character.id).count() > 0
 
 
-class Character(db.Model, TagBase, RefBase):
+class Character(BaseModel, TagBase, RefBase):
     # Table definitions
     __table_args__ = (db.UniqueConstraint('series_id', 'first_name', 'last_name', 'suffix', 'parent_id'),)
     id = db.Column(db.Integer, primary_key=True)
@@ -289,10 +279,6 @@ class Character(db.Model, TagBase, RefBase):
     aliases = db.relationship('Character', backref=db.backref('parent', remote_side=[id]))
 
     # Instance functions
-    def __init__(self, first_name, last_name):
-        self.first_name = first_name
-        self.last_name = last_name
-
     def __repr__(self):
         return '<Character: {} {}; Tags:{};>'.format(self.first_name, self.last_name, self.tags.all() or "n/a")
 
@@ -315,7 +301,7 @@ class Character(db.Model, TagBase, RefBase):
             appearances.c.book_id == book.id).count() > 0
 
 
-class Series(db.Model, TagBase):
+class Series(BaseModel, TagBase):
     # Table definitions
     id = db.Column(db.Integer, primary_key=True)
     universe_id = db.Column(db.Integer, db.ForeignKey('universe.id'))
@@ -327,9 +313,6 @@ class Series(db.Model, TagBase):
     universe = db.relationship('Universe', foreign_keys=universe_id, backref='series')
 
     # Instance functions
-    def __init__(self, title):
-        self.title = title
-
     def __repr__(self):
         return '<Series: {}; Tags:{};>'.format(self.title, self.tags.all() or "n/a")
 
@@ -337,7 +320,7 @@ class Series(db.Model, TagBase):
         return super().is_tagged(tag, series_tags)
 
 
-class Universe(db.Model, TagBase):
+class Universe(BaseModel, TagBase):
     # Table definitions
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.Text, unique=True)
@@ -347,9 +330,6 @@ class Universe(db.Model, TagBase):
         backref=db.backref('universes', lazy=True))
 
     # Instance functions
-    def __init__(self, title):
-        self.title = title
-
     def __repr__(self):
         return '<Universe: {}; Tags: {};>'.format(self.title, self.tags.all() or "n/a")
 
