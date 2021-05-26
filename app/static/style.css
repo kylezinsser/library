@@ -3,6 +3,12 @@ body {
     background-color: #d9d9d9;
 }
 
+.error {
+    color: #8f3131;
+    background-color: #edbebe;
+    border-color: #e3a6a6;
+}
+
 #delete {
     float: right;
     clear: both;

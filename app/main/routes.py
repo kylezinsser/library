@@ -5,6 +5,7 @@ from app import db
 from app.main.forms import EmptyForm, ActorForm, ArtForm, AuthorForm, BookForm, CharacterForm, SeriesForm, UniverseForm
 from app.models import User, Actor, Art, Author, Book, Character, Series, Universe
 from app.main import bp
+from sqlalchemy import exc
 import os
 
 
@@ -214,43 +215,70 @@ def add_resource(ResourceClass, FormClass, default_template, redirect_url, back_
         resource = ResourceClass()
         form.populate_obj(resource)
         
-        db.session.add(resource)
-        db.session.commit()
+        try:
+            db.session.add(resource)
+            db.session.commit()
+            flash('Congratulations, you added a {}!'.format(ResourceClass.__name__))
+        except exc.IntegrityError:
+            db.session.rollback()
+            flash('Duplicate {} entry detected'.format(ResourceClass.__name__), 'error')
+            return render_template('errors/500.html'), 500
+        except:
+            db.session.rollback()
+            flash('Unknown error occured', 'error')
+            return render_template('errors/500.html'), 500
 
-        flash('Congratulations, you added a {}!'.format(ResourceClass.__name__))
         return redirect(redirect_url)
 
-    return render_template(default_template, title='Add to Collection', form=form, back_url=back_url)
+    return render_template(default_template, title='Add to {} Collection'.format(ResourceClass.__name__), form=form, back_url=back_url)
 
 def edit_resource(ResourceClass, FormClass, id, default_template, redirect_url, back_url):
     resource = ResourceClass.query.get(id)
     if resource:
         form = FormClass(obj=resource)
         if form.validate_on_submit():
-            form.populate_obj(resource)
-            db.session.commit()
-            flash('{} record update success'.format(ResourceClass.__name__))
+            try:
+                form.populate_obj(resource)
+                db.session.commit()
+                flash('{} record update success'.format(ResourceClass.__name__))
+            except exc.IntegrityError:
+                db.session.rollback()
+                flash('Duplicate {} entry detected'.format(ResourceClass.__name__), 'error')
+                return render_template('errors/500.html'), 500
+            except:
+                db.session.rollback()
+                flash('Unknown error occured', 'error')
+                return render_template('errors/500.html'), 500
+
             return redirect(redirect_url)
 
     return render_template(default_template, title='Edit Resource', form=form, back_url=back_url)
 
 def get_resources(ResourceClass, default_template, back_url, get_uri, edit_uri):
     resources = ResourceClass.query.all()
-
     return render_template(default_template, results=resources, back_url=back_url, get_uri=get_uri, edit_uri=edit_uri)
 
 def get_resource(ResourceClass, id, default_template, back_url, get_uri, edit_uri):
     resource = ResourceClass.query.get(id)
 
-    return render_template(default_template, results=[resource], back_url=back_url, get_uri=get_uri, edit_uri=edit_uri)
+    if resource:
+        return render_template(default_template, results=[resource], back_url=back_url, get_uri=get_uri, edit_uri=edit_uri)
+    else:        
+        return render_template('errors/404.html'), 404
+    
 
 def delete_resource(ResourceClass, id):
-    result = ResourceClass.query.filter_by(id=id).delete()
-    db.session.commit()
+    try:
+        result = ResourceClass.query.filter_by(id=id).delete()
+        db.session.commit()
 
-    if result:
-        flash('Successfully deleted {} record'.format(ResourceClass.__name__))
-        return jsonify(success=True)
-    else:
-        flash('Error deleting {} id: {}'.format(ResourceClass.__name__, id))
+        if result:
+            flash('Successfully deleted {} record'.format(ResourceClass.__name__))
+            return jsonify(success=True)
+        else:
+            flash('Error deleting {} id: {}'.format(ResourceClass.__name__, id), 'error')
+            return jsonify(success=False)
+    except:
+        db.session.rollback()
+        flash('Error deleting {} id: {}'.format(ResourceClass.__name__, id), 'error')
         return jsonify(success=False)

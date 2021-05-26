@@ -150,7 +150,7 @@ class Reference(BaseModel):
 
 class Actor(BaseModel, TagBase, RefBase):
     # Table definitions
-    __table_args__ = (db.UniqueConstraint('first_name', 'middle_name', 'last_name', 'suffix'),)
+    __table_args__ = (db.UniqueConstraint('first_name', 'last_name'),)
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.Text)
     middle_name = db.Column(db.Text)
@@ -177,6 +177,7 @@ class Actor(BaseModel, TagBase, RefBase):
 
 class Art(BaseModel, TagBase, RefBase):
     # Table definitions
+    __table_args__ = (db.UniqueConstraint('title', 'source'),)
     id = db.Column(db.Integer, primary_key=True)
     artist = db.Column(db.Text)
     title = db.Column(db.Text)
@@ -202,7 +203,7 @@ class Art(BaseModel, TagBase, RefBase):
 
 class Author(BaseModel):
     # Table definitions
-    __table_args__ = (db.UniqueConstraint('first_name', 'middle_name', 'last_name', 'suffix'),)
+    __table_args__ = (db.UniqueConstraint('first_name', 'last_name'),)
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.Text)
     middle_name = db.Column(db.Text)
@@ -216,14 +217,13 @@ class Author(BaseModel):
 
 class Book(BaseModel, TagBase):
     # Table definitions
-    __table_args__ = (db.UniqueConstraint('universe_id', 'series_id', 'title'),)
     id = db.Column(db.Integer, primary_key=True)
     universe_id = db.Column(db.Integer, db.ForeignKey('universe.id'))
     series_id = db.Column(db.Integer, db.ForeignKey('series.id'))
     author_id = db.Column(db.Integer, db.ForeignKey('author.id'))
     coauthor_id = db.Column(db.Integer, db.ForeignKey('author.id'))
-    title = db.Column(db.Text)
-    series_index = db.Column(db.Integer)
+    title = db.Column(db.Text, unique=True)
+    series_number = db.Column(db.Integer)
 
     # Table associations
     tags = db.relationship('Tag', secondary=book_tags, lazy='dynamic',
@@ -257,7 +257,7 @@ class Book(BaseModel, TagBase):
 
 class Character(BaseModel, TagBase, RefBase):
     # Table definitions
-    __table_args__ = (db.UniqueConstraint('series_id', 'first_name', 'last_name', 'suffix', 'parent_id'),)
+    __table_args__ = (db.UniqueConstraint('series_id', 'first_name', 'last_name'),)
     id = db.Column(db.Integer, primary_key=True)
     universe_id = db.Column(db.Integer, db.ForeignKey('universe.id'))
     series_id = db.Column(db.Integer, db.ForeignKey('series.id'))

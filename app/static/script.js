@@ -9,11 +9,15 @@ $(document).ready(function(){
     $('#delete').click(function(event){
         event.preventDefault();
 
-        url = window.location.href;
-        delete_url = url.substring(0, url.lastIndexOf('/'));
-
-        console.log("Deleting: " + delete_url);
-        deleteResource(delete_url);
+        if (confirm('Are you sure you want to delete this entry?')) {
+            url = window.location.href;
+            delete_url = url.substring(0, url.lastIndexOf('/'));
+    
+            console.log("Deleting: " + delete_url);
+            deleteResource(delete_url);
+        } else {
+            console.log('Deletion cancelled.');
+        }
     })
 
     function deleteResource(url) {
