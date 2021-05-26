@@ -2,6 +2,7 @@ from flask import current_app
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import class_mapper, ColumnProperty
+from sqlalchemy.ext.hybrid import hybrid_property
 from app import db, login
 
 class BaseModel(db.Model):
@@ -152,9 +153,9 @@ class Actor(BaseModel, TagBase, RefBase):
     # Table definitions
     __table_args__ = (db.UniqueConstraint('first_name', 'last_name'),)
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.Text)
+    first_name = db.Column(db.Text, nullable=False, default='')
     middle_name = db.Column(db.Text)
-    last_name = db.Column(db.Text)
+    last_name = db.Column(db.Text, nullable=False, default='')
     suffix = db.Column(db.Text)
 
     # Table associations
@@ -162,6 +163,13 @@ class Actor(BaseModel, TagBase, RefBase):
         backref=db.backref('actors', lazy=True))
     refs = db.relationship('Reference', secondary=actor_refs, lazy='dynamic',
         backref=db.backref('actors', lazy=True))
+
+    # Property for select field labels
+    @hybrid_property
+    def full_name(self):
+        first = self.first_name + ' ' + self.middle_name if self.middle_name else self.first_name
+        last = self.last_name + ' ' + self.suffix if self.suffix else self.last_name
+        return first + ' ' + last
 
     # Instance functions
     # TODO: middle_name printing None for nulls
@@ -205,10 +213,17 @@ class Author(BaseModel):
     # Table definitions
     __table_args__ = (db.UniqueConstraint('first_name', 'last_name'),)
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.Text)
+    first_name = db.Column(db.Text, nullable=False, default='')
     middle_name = db.Column(db.Text)
-    last_name = db.Column(db.Text)
+    last_name = db.Column(db.Text, nullable=False, default='')
     suffix = db.Column(db.Text)
+
+    # Property for select field labels
+    @hybrid_property
+    def full_name(self):
+        first = self.first_name + ' ' + self.middle_name if self.middle_name else self.first_name
+        last = self.last_name + ' ' + self.suffix if self.suffix else self.last_name
+        return first + ' ' + last
 
     # Instance functions
     def __repr__(self):
@@ -262,8 +277,8 @@ class Character(BaseModel, TagBase, RefBase):
     universe_id = db.Column(db.Integer, db.ForeignKey('universe.id'))
     series_id = db.Column(db.Integer, db.ForeignKey('series.id'))
     parent_id = db.Column(db.Integer, db.ForeignKey('character.id'))
-    first_name = db.Column(db.Text)
-    last_name = db.Column(db.Text)
+    first_name = db.Column(db.Text, nullable=False, default='')
+    last_name = db.Column(db.Text, nullable=False, default='')
     suffix = db.Column(db.Text)
     description = db.Column(db.Text)
 
@@ -277,6 +292,12 @@ class Character(BaseModel, TagBase, RefBase):
     universe = db.relationship('Universe', foreign_keys=universe_id, backref='characters')
     series = db.relationship('Series', foreign_keys=series_id, backref='characters')
     aliases = db.relationship('Character', backref=db.backref('parent', remote_side=[id]))
+
+    # Property for select field labels
+    @hybrid_property
+    def full_name(self):
+        last = self.last_name + ' ' + self.suffix if self.suffix else self.last_name
+        return self.first_name + ' ' + last
 
     # Instance functions
     def __repr__(self):
