@@ -200,7 +200,7 @@ class Art(BaseModel, TagBase, RefBase):
 
     # Instance functions
     def __repr__(self):
-        return '<Art: {} by {}; Tags:{};>'.format(self.title, self.artist, self.tags.all() or "n/a")
+        return '<Art: {} by {}>'.format(self.title, self.artist)
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, art_tags)
@@ -227,7 +227,7 @@ class Author(BaseModel):
 
     # Instance functions
     def __repr__(self):
-        return '<Author: {} {} {};>'.format(self.first_name, self.middle_name, self.last_name)
+        return '{}'.format(self.full_name)
 
 
 class Book(BaseModel, TagBase):
@@ -252,7 +252,7 @@ class Book(BaseModel, TagBase):
 
     # Instance functions
     def __repr__(self):
-        return '<Book: {} by author_id {}; Tags:{};>'.format(self.title, self.author_id, self.tags.all() or "n/a")
+        return '{}'.format(self.title)
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, book_tags)
@@ -301,7 +301,7 @@ class Character(BaseModel, TagBase, RefBase):
 
     # Instance functions
     def __repr__(self):
-        return '<Character: {} {}; Tags:{};>'.format(self.first_name, self.last_name, self.tags.all() or "n/a")
+        return '{}'.format(self.full_name)
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, character_tags)
@@ -335,7 +335,7 @@ class Series(BaseModel, TagBase):
 
     # Instance functions
     def __repr__(self):
-        return '<Series: {}; Tags:{};>'.format(self.title, self.tags.all() or "n/a")
+        return '{}'.format(self.title)
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, series_tags)
@@ -352,7 +352,7 @@ class Universe(BaseModel, TagBase):
 
     # Instance functions
     def __repr__(self):
-        return '<Universe: {}; Tags: {};>'.format(self.title, self.tags.all() or "n/a")
+        return '{}'.format(self.title)
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, universe_tags)

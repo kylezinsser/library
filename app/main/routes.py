@@ -58,11 +58,13 @@ def edit_actor(id):
 
 @bp.route('/actors')
 def get_actors():
-    return get_resources(Actor, 'resource.html', url_for('main.explore'), 'main.get_actor', 'main.edit_actor')
+    columns = ['first_name', 'middle_name', 'last_name', 'suffix']
+    return get_resources(Actor, 'resource.html', url_for('main.explore'), 'main.get_actor', 'main.edit_actor', columns)
 
 @bp.route('/actors/<int:id>')
 def get_actor(id):
-    return get_resource(Actor, id, 'resource.html', url_for('main.get_actors'), 'main.get_actor', 'main.edit_actor')
+    columns = ['first_name', 'middle_name', 'last_name', 'suffix']
+    return get_resource(Actor, id, 'resource.html', url_for('main.get_actors'), 'main.get_actor', 'main.edit_actor', columns)
 
 @bp.route('/actors/<int:id>', methods=['DELETE'])
 def delete_actor(id):
@@ -81,11 +83,13 @@ def edit_art(id):
 
 @bp.route('/art')
 def get_art():
-    return get_resources(Art, 'resource.html', url_for('main.explore'), 'main.get_art_id', 'main.edit_art')
+    columns = ['artist', 'title', 'description', 'source']
+    return get_resources(Art, 'resource.html', url_for('main.explore'), 'main.get_art_id', 'main.edit_art', columns)
 
 @bp.route('/art/<int:id>')
 def get_art_id(id):
-    return get_resource(Art, id, 'resource.html', url_for('main.get_art'), 'main.get_art_id', 'main.edit_art')
+    columns = ['artist', 'title', 'description', 'source']
+    return get_resource(Art, id, 'resource.html', url_for('main.get_art'), 'main.get_art_id', 'main.edit_art', columns)
 
 @bp.route('/art/<int:id>', methods=['DELETE'])
 def delete_art(id):
@@ -104,11 +108,13 @@ def edit_author(id):
 
 @bp.route('/authors')
 def get_authors():
-    return get_resources(Author, 'resource.html', url_for('main.explore'), 'main.get_author', 'main.edit_author')
+    columns = ['first_name', 'middle_name', 'last_name', 'suffix']
+    return get_resources(Author, 'resource.html', url_for('main.explore'), 'main.get_author', 'main.edit_author', columns)
 
 @bp.route('/authors/<int:id>')
 def get_author(id):
-    return get_resource(Author, id, 'resource.html', url_for('main.get_authors'), 'main.get_author', 'main.edit_author')
+    columns = ['first_name', 'middle_name', 'last_name', 'suffix']
+    return get_resource(Author, id, 'resource.html', url_for('main.get_authors'), 'main.get_author', 'main.edit_author', columns)
 
 @bp.route('/authors/<int:id>', methods=['DELETE'])
 def delete_author(id):
@@ -127,11 +133,13 @@ def edit_book(id):
 
 @bp.route('/books')
 def get_books():
-    return get_resources(Book, 'resource.html', url_for('main.explore'), 'main.get_book', 'main.edit_book')
+    columns = ['universe', 'series', 'author', 'title', 'series_number']
+    return get_resources(Book, 'resource.html', url_for('main.explore'), 'main.get_book', 'main.edit_book', columns)
 
 @bp.route('/books/<int:id>')
 def get_book(id):
-    return get_resource(Book, id, 'resource.html', url_for('main.get_books'), 'main.get_book', 'main.edit_book')
+    columns = ['universe', 'series', 'author', 'title', 'series_number']
+    return get_resource(Book, id, 'resource.html', url_for('main.get_books'), 'main.get_book', 'main.edit_book', columns)
 
 @bp.route('/books/<int:id>', methods=['DELETE'])
 def delete_book(id):
@@ -150,11 +158,13 @@ def edit_character(id):
 
 @bp.route('/characters')
 def get_characters():
-    return get_resources(Character, 'resource.html', url_for('main.explore'), 'main.get_character', 'main.edit_character')
+    columns = ['universe', 'series', 'first_name', 'last_name', 'suffix', 'description']
+    return get_resources(Character, 'resource.html', url_for('main.explore'), 'main.get_character', 'main.edit_character', columns)
 
 @bp.route('/characters/<int:id>')
 def get_character(id):
-    return get_resource(Character, id, 'resource.html', url_for('main.get_characters'), 'main.get_character', 'main.edit_character')
+    columns = ['universe', 'series', 'first_name', 'last_name', 'suffix', 'description']
+    return get_resource(Character, id, 'resource.html', url_for('main.get_characters'), 'main.get_character', 'main.edit_character', columns)
 
 @bp.route('/characters/<int:id>', methods=['DELETE'])
 def delete_character(id):
@@ -173,11 +183,13 @@ def edit_series(id):
 
 @bp.route('/series')
 def get_series():
-    return get_resources(Series, 'resource.html', url_for('main.explore'), 'main.get_series_id', 'main.edit_series')
+    columns = ['universe', 'title']
+    return get_resources(Series, 'resource.html', url_for('main.explore'), 'main.get_series_id', 'main.edit_series', columns)
 
 @bp.route('/series/<int:id>')
 def get_series_id(id):
-    return get_resource(Series, id, 'resource.html', url_for('main.get_series'), 'main.get_series_id', 'main.edit_series')
+    columns = ['universe', 'title']
+    return get_resource(Series, id, 'resource.html', url_for('main.get_series'), 'main.get_series_id', 'main.edit_series', columns)
 
 @bp.route('/series/<int:id>', methods=['DELETE'])
 def delete_series(id):
@@ -196,11 +208,13 @@ def edit_universe(id):
 
 @bp.route('/universes')
 def get_universes():
-    return get_resources(Universe, 'resource.html', url_for('main.explore'), 'main.get_universe', 'main.edit_universe')
+    columns = ['title']
+    return get_resources(Universe, 'resource.html', url_for('main.explore'), 'main.get_universe', 'main.edit_universe', columns)
 
 @bp.route('/universes/<int:id>')
 def get_universe(id):
-    return get_resource(Universe, id, 'resource.html', url_for('main.get_universes'), 'main.get_universe', 'main.edit_universe')
+    columns = ['title']
+    return get_resource(Universe, id, 'resource.html', url_for('main.get_universes'), 'main.get_universe', 'main.edit_universe', columns)
 
 @bp.route('/universes/<int:id>', methods=['DELETE'])
 def delete_universe(id):
@@ -254,15 +268,15 @@ def edit_resource(ResourceClass, FormClass, id, default_template, redirect_url, 
 
     return render_template(default_template, title='Edit Resource', form=form, back_url=back_url)
 
-def get_resources(ResourceClass, default_template, back_url, get_uri, edit_uri):
+def get_resources(ResourceClass, default_template, back_url, get_uri, edit_uri, columns):
     resources = ResourceClass.query.all()
-    return render_template(default_template, results=resources, back_url=back_url, get_uri=get_uri, edit_uri=edit_uri)
+    return render_template(default_template, results=resources, back_url=back_url, get_uri=get_uri, edit_uri=edit_uri, columns=columns)
 
-def get_resource(ResourceClass, id, default_template, back_url, get_uri, edit_uri):
+def get_resource(ResourceClass, id, default_template, back_url, get_uri, edit_uri, columns):
     resource = ResourceClass.query.get(id)
 
     if resource:
-        return render_template(default_template, results=[resource], back_url=back_url, get_uri=get_uri, edit_uri=edit_uri)
+        return render_template(default_template, results=[resource], back_url=back_url, get_uri=get_uri, edit_uri=edit_uri, columns=columns)
     else:        
         return render_template('errors/404.html'), 404
     

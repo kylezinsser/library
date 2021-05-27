@@ -50,7 +50,7 @@ class ArtForm(FlaskForm):
 class AuthorForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     middle_name = StringField('Middle Name', filters=[lambda x: x or None])
-    last_name = StringField('Last Name', validators=[DataRequired()])
+    last_name = StringField('Last Name')
     suffix = StringField('Suffix', filters=[lambda x: x or None])
     submit = SubmitField('Submit')
     delete = SubmitField('Delete')

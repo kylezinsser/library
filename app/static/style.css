@@ -20,6 +20,14 @@ body {
     clear: both;
 }
 
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: #ccc;
+}
+
 td a:not(.btn) {
     display: inline-block;
     padding: 6px 12px;

@@ -19,6 +19,10 @@ $(document).ready(function(){
             console.log('Deletion cancelled.');
         }
     })
+    
+    $(".clickable-row").click(function() {
+        window.location = $(this).data("href");
+    });
 
     function deleteResource(url) {
         $.ajax({

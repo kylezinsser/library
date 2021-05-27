@@ -15,8 +15,8 @@
         <table class="table">
             <thead>
             <tr>
-                {% for col in results[0].columns() %}
-                <th><span>{{ col }}</span></th>
+                {% for col in columns %}
+                <th><span>{{ col |replace('_', ' ') |title }}</span></th>
                 {% endfor %}
 
                 <th><span></span></th>
@@ -25,13 +25,9 @@
 
             <tbody>
             {% for row in results %}
-            <tr>
-                {% for col in row.columns() %}
-                    {% if col == 'id' %}
-                    <td><a href="{{ url_for(get_uri, id=row.id) }}">{{ row.id }}</a></td>
-                    {% else %}
-                    <td><span>{{ row[col] }}</span></td>
-                    {% endif %}
+            <tr class='clickable-row' data-href="{{ url_for(get_uri, id=row.id) }}">
+                {% for col in columns %}
+                    <td><span>{{ row[col] if row[col] else '---' }}</span></td>
                 {% endfor %}
                 
                 <td><a class="btn btn-default" href="{{ url_for(edit_uri, id=row.id) }}">Edit</a></td>
