@@ -3,9 +3,9 @@ from config import Config
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_migrate import Migrate
-from flask_s3 import FlaskS3
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
+import boto3, botocore
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -25,7 +25,11 @@ login = LoginManager()
 login.login_view = 'auth.login'
 login.login_message = 'Please log in to access this page.'
 bootstrap = Bootstrap()
-s3 = FlaskS3()
+s3 = boto3.client(
+        "s3",
+        aws_access_key_id=Config.S3_KEY,
+        aws_secret_access_key=Config.S3_SECRET
+    )
 
 
 def create_app(config_class=Config):
@@ -36,7 +40,6 @@ def create_app(config_class=Config):
     migrate.init_app(app, db, render_as_batch=True)
     login.init_app(app)
     bootstrap.init_app(app)
-    s3.init_app(app)
 
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)

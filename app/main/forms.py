@@ -1,5 +1,6 @@
 from flask import current_app
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.fields.core import IntegerField
@@ -90,3 +91,7 @@ class UniverseForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     submit = SubmitField('Submit')
     delete = SubmitField('Delete')
+
+class UploadForm(FlaskForm):
+    file = FileField('Upload Reference')
+    submit = SubmitField('Submit')

@@ -1,8 +1,9 @@
 from flask import current_app, render_template, flash, redirect, url_for, request, jsonify, send_from_directory
 from flask_login import current_user, login_required
 from werkzeug.urls import url_parse
-from app import db
-from app.main.forms import EmptyForm, ActorForm, ArtForm, AuthorForm, BookForm, CharacterForm, SeriesForm, UniverseForm
+from werkzeug.utils import secure_filename
+from app import db, s3
+from app.main.forms import EmptyForm, ActorForm, ArtForm, AuthorForm, BookForm, CharacterForm, SeriesForm, UniverseForm, UploadForm
 from app.models import User, Actor, Art, Author, Book, Character, Series, Universe
 from app.main import bp
 from sqlalchemy import exc
@@ -296,3 +297,50 @@ def delete_resource(ResourceClass, id):
         db.session.rollback()
         flash('Error deleting {} id: {}'.format(ResourceClass.__name__, id), 'error')
         return jsonify(success=False)
+
+
+# CRUD functions for S3
+
+@bp.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    form = UploadForm()
+    
+    if form.validate_on_submit():
+        filename = secure_filename(form.file.data.filename)
+        print("ATTEMPTING FILE UPLOAD")
+        output = send_to_s3(form.file.data)
+        flash(output)
+        print("ATTEMPTING FILE DELETE")
+        deleteput = delete_from_s3('Reyna.png')
+        print(deleteput)
+        return redirect(url_for('main.upload_file'))
+
+    return render_template('upload.html', form=form)
+
+def send_to_s3(file):
+    """
+    Docs: http://boto3.readthedocs.io/en/latest/guide/s3.html
+    """
+    try:
+        s3.upload_fileobj(
+            file,
+            current_app.config["S3_BUCKET"],
+            file.filename,
+            ExtraArgs={
+                "ContentType": file.content_type
+            }
+        )
+    except Exception as e:
+        print("Something Happened: ", e)
+        return e
+    return "{}{}".format(current_app.config["S3_LOCATION"], file.filename)
+
+def delete_from_s3(key):
+    try:
+        result = s3.delete_object(Bucket=current_app.config["S3_BUCKET"], Key=key)
+        print(result)
+        return result
+    except Exception as e:
+        print("Something Happened: ", e)
+        return e
+

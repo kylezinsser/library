@@ -67,6 +67,11 @@ universe_tags = db.Table('universe_tags',
     db.Column('universe_id', db.Integer, db.ForeignKey('universe.id'))
 )
 
+reference_tags = db.Table('reference_tags',
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),
+    db.Column('reference_id', db.Integer, db.ForeignKey('reference.id'))
+)
+
 
 # Reference association tables
 
@@ -84,6 +89,12 @@ character_refs = db.Table('character_refs',
     db.Column('reference_id', db.Integer, db.ForeignKey('reference.id')),
     db.Column('character_id', db.Integer, db.ForeignKey('character.id'))
 )
+
+# Should be able to add this to allow cover art on character pages?
+# book_refs = db.Table('book_refs',
+#     db.Column('reference_id', db.Integer, db.ForeignKey('reference.id')),
+#     db.Column('book_id', db.Integer, db.ForeignKey('book.id'))
+# )
 
 
 # Apperance association table
@@ -172,9 +183,8 @@ class Actor(BaseModel, TagBase, RefBase):
         return first + ' ' + last
 
     # Instance functions
-    # TODO: middle_name printing None for nulls
     def __repr__(self):
-        return '<Actor: {} {} {}; Tags:{};>'.format(self.first_name, self.middle_name, self.last_name, self.tags.all() or "n/a")
+        return '<Actor: {}; Tags:{};>'.format(self.full_name, self.tags.all() or "n/a")
 
     def is_tagged(self, tag):
         return super().is_tagged(tag, actor_tags)
@@ -275,7 +285,7 @@ class Character(BaseModel, TagBase, RefBase):
     __table_args__ = (db.UniqueConstraint('series_id', 'first_name', 'last_name'),)
     id = db.Column(db.Integer, primary_key=True)
     universe_id = db.Column(db.Integer, db.ForeignKey('universe.id'))
-    series_id = db.Column(db.Integer, db.ForeignKey('series.id'))
+    series_id = db.Column(db.Integer, db.ForeignKey('series.id'), nullable=False, default=0)
     parent_id = db.Column(db.Integer, db.ForeignKey('character.id'))
     first_name = db.Column(db.Text, nullable=False, default='')
     last_name = db.Column(db.Text, nullable=False, default='')
@@ -297,7 +307,7 @@ class Character(BaseModel, TagBase, RefBase):
     @hybrid_property
     def full_name(self):
         last = self.last_name + ' ' + self.suffix if self.suffix else self.last_name
-        return self.first_name + ' ' + last
+        return self.first_name + ' ' + last if last else self.first_name
 
     # Instance functions
     def __repr__(self):
